@@ -8,6 +8,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	convert "./convert"
 )
 
 func main() {
@@ -16,7 +18,7 @@ func main() {
 
 	router.MaxMultipartMemory = 8 << 20 // 8 MiB
 	router.POST("/ConvertJPG", convertJPG)
-	router.POST("/ConvertPNG", convertPNG)
+	router.POST("/convertPhoto", convertPhoto)
 
 	router.Run(":8080")
 }
@@ -52,9 +54,9 @@ func convertJPG(con *gin.Context) {
 	con.JSON(http.StatusOK, "ConvertJPG")
 }
 
-func convertPNG(con *gin.Context) {
+func convertPhoto(con *gin.Context) {
 
-	photoPath := "./photos/"
+	photoPath := "./photos/bigPhotos/"
 
 	file, _ := con.FormFile("file")
 	log.Println(file.Filename)
@@ -62,4 +64,6 @@ func convertPNG(con *gin.Context) {
 	con.SaveUploadedFile(file, photoPath+file.Filename)
 
 	con.String(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
+
+	convert.Convert(photoPath + file.Filename)
 }
