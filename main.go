@@ -15,13 +15,13 @@ func main() {
 	router := gin.Default()
 
 	router.MaxMultipartMemory = 8 << 20 // 8 MiB
-	router.POST("/ConvertJPG", ConvertJPG)
-	router.POST("/ConvertPNG", ConvertPNG)
- 
+	router.POST("/ConvertJPG", convertJPG)
+	router.POST("/ConvertPNG", convertPNG)
+
 	router.Run(":8080")
 }
 
-func ConvertJPG(con *gin.Context) {
+func convertJPG(con *gin.Context) {
 
 	type postTest struct {
 		User string `json:"User" binding:"User"` // `form:"User" json:"User"`
@@ -44,7 +44,7 @@ func ConvertJPG(con *gin.Context) {
 
 	user := data.User
 	userD := con.DefaultQuery("User", "")
-	userP := con.PostFormMap("User")
+	userP := con.PostForm("User")
 	fmt.Println(user)
 	fmt.Println(userD)
 	fmt.Println(userP)
@@ -52,14 +52,14 @@ func ConvertJPG(con *gin.Context) {
 	con.JSON(http.StatusOK, "ConvertJPG")
 }
 
-func ConvertPNG(con *gin.Context) {
-	// photoPath := "./photos/test.jpg"
+func convertPNG(con *gin.Context) {
+
 	photoPath := "./photos/"
 
 	file, _ := con.FormFile("file")
 	log.Println(file.Filename)
 
-	con.SaveUploadedFile(file, photoPath)
+	con.SaveUploadedFile(file, photoPath+file.Filename)
 
 	con.String(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
 }
