@@ -12,31 +12,32 @@ import (
 
 // add formula for count MaxHeight and MaxWidth
 
+// Convert all loaded photos
 func Convert(path string) {
+
+	hight := 1024
 
 	format := strings.Split(path, ".")
 
 	lenArray := len(format)
 
 	if format[lenArray-1] == "jpg" {
-		convertJPG(path)
+		convertJPG(path, hight)
 	}
 
 	if format[lenArray-1] == "png" {
-		convertPNG(path)
+		convertPNG(path, hight)
 	}
 }
 
-func convertJPG(path string) {
+func convertJPG(path string, hight int) {
 
-	// open "test.jpg"
 	file, err := os.Open(path)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	// decode jpeg into image.Image
 	img, err := jpeg.Decode(file)
 	if err != nil {
 		fmt.Println(err)
@@ -44,9 +45,10 @@ func convertJPG(path string) {
 	}
 	file.Close()
 
-	// resize to width 1000 using Lanczos resampling
-	// and preserve aspect ratio
-	m := resize.Thumbnail(1024, 0, img, resize.Lanczos3)
+	imgHight, imgWidth := countWidthHight(img.Bounds().Dy(), img.Bounds().Dx(), hight)
+	// h 604, w 453
+
+	m := resize.Thumbnail(imgWidth, imgHight, img, resize.Lanczos3)
 
 	newPath := "./photos/converted/"
 
@@ -61,20 +63,17 @@ func convertJPG(path string) {
 	}
 	defer out.Close()
 
-	// write new image to file
 	jpeg.Encode(out, m, nil)
 }
 
-func convertPNG(path string) {
+func convertPNG(path string, hight int) {
 
-	// open "test.png"
 	file, err := os.Open(path)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	// decode jpeg into image.Image
 	img, err := png.Decode(file)
 	if err != nil {
 		fmt.Println(err)
@@ -82,9 +81,9 @@ func convertPNG(path string) {
 	}
 	file.Close()
 
-	// resize to width 1000 using Lanczos resampling
-	// and preserve aspect ratio
-	m := resize.Thumbnail(1024, 0, img, resize.Lanczos3)
+	imgHight, imgWidth := countWidthHight(img.Bounds().Dy(), img.Bounds().Dx(), hight)
+
+	m := resize.Thumbnail(imgWidth, imgHight, img, resize.Lanczos3)
 
 	newPath := "./photos/converted/"
 
@@ -99,6 +98,23 @@ func convertPNG(path string) {
 	}
 	defer out.Close()
 
-	// write new image to file
 	png.Encode(out, m)
+}
+
+func countWidthHight(imageHight int, imageWidth int, hight int) (newHight uint, newWidth uint) {
+
+	if imageHight > hight {
+
+		cof := float32(imageHight) / float32(hight)
+		newW := float32(imageWidth) / cof
+
+		newWidth = uint(newW)
+		newHight = uint(hight)
+
+		return newHight, newWidth
+	}
+	newWidth = uint(imageWidth)
+	newHight = uint(imageHight)
+
+	return newHight, newWidth
 }
